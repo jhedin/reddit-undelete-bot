@@ -1,3 +1,4 @@
+import os
 import praw
 from time import time, sleep
 from requests.exceptions import HTTPError
@@ -14,7 +15,7 @@ def login():
     r.config.decode_html_entities = True
     while True:
         try:
-            r.login(user, password)
+            r.login(os.environ['REDDIT_USER'], os.environ['REDDIT_PASS'])
             break
         except Exception as e:
             print 'can\'t even log in'
@@ -206,7 +207,7 @@ def undelete_removed_submissions(removed_submissions,old_submissions):
         bot_submission = None
         while True:
             try:
-                bot_submission = r.submit('*****', title, url=submission.permalink)
+                bot_submission = r.submit('explain_undelete', title, url=submission.permalink)
                 break
             # don't undelete a submission twice
             except praw.errors.AlreadySubmitted:
