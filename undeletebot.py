@@ -29,7 +29,7 @@ def get_top_submissions():
     monitored_subreddit='all'
     while True:
         try:
-            top_submissions_generator = r.get_subreddit(monitored_subreddit).get_hot(limit=110)
+            top_submissions_generator = r.get_subreddit(monitored_subreddit).get_hot(limit=1100)
             # actually fetch them NOW
             for submission in top_submissions_generator:
                 # due to the dynamic nature of reddit
@@ -193,6 +193,8 @@ def undelete_removed_submissions(removed_submissions,old_submissions):
     
     for submission in removed_submissions:
         rank = old_submissions.index(submission)+1
+        if rank > 110:
+            continue
         score = submission.score
         num_comments = submission.num_comments
         subreddit = submission.subreddit.display_name
