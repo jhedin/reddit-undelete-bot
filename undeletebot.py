@@ -1,18 +1,31 @@
 import os
 import praw
+import gdata.spreadsheet.service
 from time import time, sleep
 from requests.exceptions import HTTPError
 
+import gspread
+
 # global reddit session
 r = None
+gc = None
+wks = None
+wks2 = None
 
 def login():
     global r
-    user_agent=('undelete bot version 0.2 by /u/IAmAnAnonymousCoward')
-    user='*****'
-    password='*****'
+    global gc
+    global wks
+    global wks2
+
+    user_agent=('undelete bot version 0.3 by /u/IAmAnAnonymousCoward and /u/eightnote')
+
     r = praw.Reddit(user_agent=user_agent)
     r.config.decode_html_entities = True
+    gc = gspread.login('feedmebot@gmail.com', 'r33ek3h05')
+    wks = gc.open_by_url('https://docs.google.com/spreadsheets/d/1IZXCTvr-ZgR0A4uNFIcCrJBk4EnjSW4x6bgU9R9kR4s/edit').get_worksheet(1)
+    wks2 = gc.open_by_url('https://docs.google.com/spreadsheets/d/1IZXCTvr-ZgR0A4uNFIcCrJBk4EnjSW4x6bgU9R9kR4s/edit').get_worksheet(0)
+
     while True:
         try:
             r.login(os.environ['REDDIT_USER'], os.environ['REDDIT_PASS'])
@@ -193,8 +206,6 @@ def undelete_removed_submissions(removed_submissions,old_submissions):
     
     for submission in removed_submissions:
         rank = old_submissions.index(submission)+1
-        if rank > 110:
-            continue
         score = submission.score
         num_comments = submission.num_comments
         subreddit = submission.subreddit.display_name
@@ -205,6 +216,23 @@ def undelete_removed_submissions(removed_submissions,old_submissions):
             excess = length - 300 + 3
             title = title[0:-excess] + '...'
         title = title + ' [/r/{0}]'.format(subreddit)
+
+        row = int(wks2.acell('B1').value)
+        wks.update_cell(row, 1, str(submission.title))
+        wks.update_cell(row, 2, str(submission.author.name))
+        wks.update_cell(row, 3, str(subreddit))
+        wks.update_cell(row, 4, str(rank))
+        wks.update_cell(row, 5, str(score))
+        wks.update_cell(row, 6, str(num_comments))
+        wks.update_cell(row, 7, str(submission.created_utc))
+        wks.update_cell(row, 8, str(submission.domain))
+        wks.update_cell(row, 9, str(submission.edited))
+        wks.update_cell(row, 10, str(submission.gilded))
+        wks.update_cell(row, 11, str(submission.is_self))
+        wks2.update_acell('B1', str(row+1))
+
+        if rank > 110:
+            continue
 
         bot_submission = None
         while True:
