@@ -238,7 +238,6 @@ def undelete_removed_submissions(removed_submissions,old_submissions):
         while True:
             try:
                 bot_submission = r.submit('explain_undelete', title, url=submission.permalink)
-                bot_submission.approve()
                 break
             # don't undelete a submission twice
             except praw.errors.AlreadySubmitted:
